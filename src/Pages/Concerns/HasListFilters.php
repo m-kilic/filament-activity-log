@@ -181,10 +181,18 @@ trait HasListFilters
 
     protected function getSubjectIDField()
     {
-        return TextInput::make('subject_id')
+        return Select::make('subject_id')
             ->label(__('filament-activity-log::activities.filters.subject_id'))
-            ->visible(fn (callable $get) => $get('subject_type'))
-            ->numeric();
+            ->visible(fn(callable $get) => $get('subject_type'))
+            ->options(function (callable $get) {
+                $subjectType = $get('subject_type');
+                if (!class_exists($subjectType)) {
+                    return [];
+                }
+
+                $field = $subjectType == 'App\Models\CashRegister' ? 'cash_register_name' : 'name';
+                return $subjectType::query()->pluck($field, 'id');
+            })->native(false)->searchable();
 
     }
 
